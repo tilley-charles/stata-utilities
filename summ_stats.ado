@@ -11,44 +11,44 @@ program              summ_stats
 
   preserve
 
-  keep if `touse'==1
+    keep if `touse'==1
 
-  tempfile f
-  postfile h str32(Variable) str80(Label) str1(Type) double(Mean P50 SD Min Max N nNonMiss nMiss pctMiss) using "`f'"
+    tempfile f
+    postfile h str32(Variable) str80(Label) str1(Type) double(Mean P50 SD Min Max N nNonMiss nMiss pctMiss) using "`f'"
 
-  foreach var of varlist `varlist' {
+    foreach var of varlist `varlist' {
 
-    count if mi(`var')
-    local nMiss = r(N)
-    local nNonMiss = `c(N)' - r(N)
+      count if mi(`var')
+      local nMiss = r(N)
+      local nNonMiss = `c(N)' - r(N)
 
-    local pctMiss = `nMiss'/`c(N)'*100
+      local pctMiss = `nMiss'/`c(N)'*100
 
-    if substr("`:type `var''",1,3) == "str" {
-      post h ("`var'") ("`:variable label `var''") ("A") `= 5 * `"(.) "'' (`c(N)') (`nNonMiss') (`nMiss') (`pctMiss')
+      if substr("`:type `var''",1,3) == "str" {
+        post h ("`var'") ("`:variable label `var''") ("A") `= 5 * `"(.) "'' (`c(N)') (`nNonMiss') (`nMiss') (`pctMiss')
+      }
+      else {
+        summ `var', detail
+        post h ("`var'") ("`:variable label `var''") ("N") (r(mean)) (r(p50)) (r(sd)) (r(min)) (r(max)) (`c(N)') (`nNonMiss') (`nMiss') (`pctMiss')
+      }
+     
     }
-    else {
-      summ `var', detail
-      post h ("`var'") ("`:variable label `var''") ("N") (r(mean)) (r(p50)) (r(sd)) (r(min)) (r(max)) (`c(N)') (`nNonMiss') (`nMiss') (`pctMiss')
-    }
-   
-  }
 
-  postclose h
-  use "`f'", clear
+    postclose h
+    use "`f'", clear
 
-  tokenize `c(ALPHA)'
+    tokenize `c(ALPHA)'
 
-  export excel using "`using'", sheet("`sheet'") firstrow(variables) `=cond("`replace'"~="", "replace", "sheetreplace")'
-  xlcolwidth   using "`using'", sheet("`sheet'") left(1 2 3) right(1 2 `c(k)') width(20 40 9)
-  xlfreeze     using "`using'", sheet("`sheet'") row(1)
-  putexcel set       "`using'", sheet("`sheet'") modify
-  putexcel A1:``c(k)''1, bold
-  putexcel A1:``c(k)''`=`c(N)'+1', font(Calibri, 10)
-  putexcel C1:``c(k)''`=`c(N)'+1', hcenter
-  putexcel D1:H`=`c(N)'+1', nformat(#,##0.0)
-  putexcel I1:K`=`c(N)'+1', nformat(#,##0)
-  putexcel ``c(k)''1:``c(k)''`=`c(N)'+1', nformat(#,##0.0)
+    export excel using "`using'", sheet("`sheet'") firstrow(variables) `=cond("`replace'"~="", "replace", "sheetreplace")'
+    xlcolwidth   using "`using'", sheet("`sheet'") left(1 2 3) right(1 2 `c(k)') width(20 40 9)
+    xlfreeze     using "`using'", sheet("`sheet'") row(1)
+    putexcel set       "`using'", sheet("`sheet'") modify
+    putexcel A1:``c(k)''1, bold
+    putexcel A1:``c(k)''`=`c(N)'+1', font(Calibri, 10)
+    putexcel C1:``c(k)''`=`c(N)'+1', hcenter
+    putexcel D1:H`=`c(N)'+1', nformat(#,##0.0)
+    putexcel I1:K`=`c(N)'+1', nformat(#,##0)
+    putexcel ``c(k)''1:``c(k)''`=`c(N)'+1', nformat(#,##0.0)
 
   restore
 
